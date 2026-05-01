@@ -1,0 +1,184 @@
+# 公開方針 / Publication Policy
+
+本ドキュメントは、fxbot リポジトリをポートフォリオとして公開する際の公開範囲・非公開範囲を定義する。
+
+## 基本方針
+
+このリポジトリは、以下を示すための公開リポジトリとする。
+
+- 複数戦略のコンフルエンス仮説を検証する実験基盤
+- 人間の認知容量を超えた同時並列監視の実装
+- 条件付きランダムベースラインとの比較実験設計
+- R-multiple / ΔE[R] / Cliff's delta / Bootstrap CI などの評価設計
+- SQLite による検証可能なログ設計
+- entry_rejections による拒否理由分析
+- 金銭リスクを持つ常駐システムの安全設計
+- practice/live 混同防止の仕組み
+- Docker / GHCR / homeserver 分離運用
+- heartbeat / healthcheck / startup guard による運用監視
+- dry-run → practice → live の段階的移行フロー
+
+このリポジトリの価値は、単に「安全なbotを作る」ことではない。  
+**人間では継続困難な複数戦略の同期発火検知を機械化し、個人レベルで統計的優位性を得られるかを検証すること**にある。
+
+安全設計・環境分離・dry-run運用は、検証と実運用を壊さないための前提条件として扱う。
+
+## 公開してよいもの
+
+以下は公開してよい。
+
+- `README.md`
+- `docs/schema.md`
+- `docs/metrics.md`
+- `docs/filters.md`
+- `docs/migration.md`
+- `docs/implementation-plan.md`
+- `docs/publication-policy.md`
+- `Dockerfile`
+- GitHub Actions
+- `startup_checks.py`
+- `heartbeat.py`
+- `db.py`
+- `logger.py`
+- `confluence.py` の抽象ロジック
+- `strategies/base.py`
+- ダミー戦略 / サンプル戦略
+- テストコード
+- `.env.example`
+
+## 公開しないもの
+
+以下は公開しない。
+
+- OANDA APIキー
+- OANDA Account ID
+- Slack Webhook URL
+- `.env`
+- `.env.practice`
+- `.env.live`
+- 実取引ログ
+- SQLite DB
+- 本番運用ログ
+- 実損益レポート
+- 実測勝率
+- 実測期待値
+- 実測で優位性が出たペア
+- 実測で優位性が出た時間帯
+- 実測で優位性が出たATR帯
+- 本番で使っている正確なパラメータ
+- 完成版の戦略ロジック
+- バックテスト結果の詳細
+- live運用設定
+
+## 公開に注意が必要なもの
+
+以下は、公開前に内容を確認する。
+
+- `filters.md` の閾値
+- `strategies/` 配下の個別戦略
+- `reports/`
+- `notebooks/`
+- `backtests/`
+- `exports/`
+- `practice-results/`
+- `live-results/`
+
+実測で優位性が確認された後は、具体的な条件を含む情報を公開しない。
+
+## パブリックリポジトリで見せる範囲
+
+パブリックリポジトリでは、以下を主に見せる。
+
+```text
+- 設計思想
+- コンフルエンス仮説
+- 条件付きランダムベースラインとの比較
+- DBスキーマ
+- 評価指標
+- フィルタ設計
+- ログ設計
+- 安全な環境切替
+- 起動時整合性チェック
+- dry-run前提の段階的運用
+- テスト
+- Docker化
+- GHCR配布
+```
+
+具体的な売買条件や実測優位性ではなく、  
+**仮説を検証可能な形に落とし込み、金銭リスクを持つ常駐システムとして安全に運用する設計力**を示す。
+
+## 非公開化の判断基準
+
+以下のいずれかを満たした場合、戦略ロジック・パラメータ・実測レポートは非公開化する。
+
+- practiceで明確な期待値改善が確認された
+- `ΔE[R] > 0` が継続した
+- Cliff's delta が small 以上になった
+- 特定ペア・時間帯・ATR帯に優位性が偏っていることが分かった
+- live運用に移行する
+- SNS / Zenn / note などで拡散され始めた
+- third party が同一ロジックを再現可能な状態になった
+
+## 避ける表現
+
+以下の表現は使わない。
+
+```text
+勝てるFX bot
+自動で稼ぐbot
+期待値プラス戦略
+実運用で利益が出た
+誰でも儲かる
+放置で稼ぐ
+```
+
+## 使う表現
+
+以下の表現を使う。
+
+```text
+複数戦略のコンフルエンス仮説を検証する実験基盤
+人間の認知容量を超えた同時並列監視の実験
+practice/live混同防止を重視した常駐取引システム
+条件付きランダムベースラインとの比較による評価設計
+検証可能性・安全性・運用分離を重視したFX bot実験基盤
+```
+
+## .gitignore 方針
+
+以下は必ず `.gitignore` に含める。
+
+```gitignore
+# secrets
+.env
+.env.*
+!.env.example
+
+# runtime data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# reports / actual performance
+reports/
+notebooks/
+exports/
+backtests/
+live-results/
+practice-results/
+
+# logs
+*.log
+```
+
+## 最終判断
+
+Phase 1〜7 は public でよい。
+
+Phase 8 practice operation も public のままでよいが、実測ログ・実測成績は commit しない。
+
+Phase 9 live migration 以降は、戦略ロジック・実パラメータ・実測レポートの公開範囲を再判断する。
+
+本当に実測で優位性が出始めた場合は、戦略ロジックだけ private 化する。
