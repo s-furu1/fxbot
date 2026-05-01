@@ -106,10 +106,6 @@ OANDA v20 APIを利用した24時間稼働のFXアルゴリズムトレードbot
 | `docs/migration.md` | practice/live 環境移行 |
 | `docs/implementation-plan.md` | 実装順序・PR分割 |
 | `docs/publication-policy.md` | 公開範囲・非公開範囲 |
-| `docs/internal-design.md` | 内部設計メモ |
-
-`docs/internal-design.md` には、公開範囲の判断が必要な内部設計情報を含みます。  
-Phase 8以降、実測で優位性が確認された場合、またはlive運用に移行する場合は、private化または削除を検討します。
 
 ---
 
@@ -123,8 +119,7 @@ fxbot/
 │   ├── filters.md
 │   ├── migration.md
 │   ├── implementation-plan.md
-│   ├── publication-policy.md
-│   └── internal-design.md
+│   └── publication-policy.md
 ├── src/
 │   └── fxbot/
 ├── scripts/
