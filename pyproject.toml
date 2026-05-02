@@ -8,7 +8,11 @@ dependencies = [
   "numpy",
   "scipy",
   "requests",
+  "six",
 ]
+
+[project.scripts]
+fxbot = "fxbot.main:main"
 
 [project.optional-dependencies]
 dev = [

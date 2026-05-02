@@ -36,4 +36,5 @@ practice-results/
 .vscode/
 .idea/
 
+docs/internal-design.md
 internal-design.md
