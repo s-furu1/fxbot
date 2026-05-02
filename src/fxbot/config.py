@@ -27,6 +27,13 @@ REQUIRED_ENV_VARS = (
 VALID_MODES = frozenset({"practice", "live"})
 DB_PATH = Path("/data/trades.db")
 HEARTBEAT_PATH = Path(os.getenv("HEARTBEAT_PATH", "/tmp/fxbot_heartbeat"))
+HARD_SPREAD_CAP = {
+    "EUR_USD": 0.0005,
+    "USD_JPY": 0.05,
+    "AUD_USD": 0.0007,
+    "EUR_GBP": 0.0008,
+    "GBP_USD": 0.0008,
+}
 
 
 @dataclass(frozen=True)

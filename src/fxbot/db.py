@@ -212,12 +212,32 @@ def has_entry_rejections_table(db_path: Path) -> bool:
     return row is not None
 
 
+def has_spread_history_table(db_path: Path) -> bool:
+    if not db_path.exists():
+        return False
+    try:
+        with connect(db_path) as conn:
+            row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='spread_history'"
+            ).fetchone()
+    except sqlite3.Error:
+        return False
+    return row is not None
+
+
 def log_entry_rejection(
     db_path: Path,
     *,
     pair: str,
     direction: str,
     reason: str,
+    spread: float | None = None,
+    spread_threshold: float | None = None,
+    atr: float | None = None,
+    atr_ratio: float | None = None,
+    confluence_kind: str | None = None,
+    agreed: str | None = None,
+    classes: str | None = None,
     extra: dict[str, Any] | None = None,
 ) -> bool:
     if not has_entry_rejections_table(db_path):
@@ -228,17 +248,72 @@ def log_entry_rejection(
             conn.execute(
                 """
                 INSERT INTO entry_rejections (
-                    timestamp, pair, direction, reason, extra
-                ) VALUES (?, ?, ?, ?, ?)
+                    timestamp, pair, direction, reason, spread, spread_threshold,
+                    atr, atr_ratio, confluence_kind, agreed, classes, extra
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     datetime.now(UTC).isoformat(),
                     pair,
                     direction,
                     reason,
+                    spread,
+                    spread_threshold,
+                    atr,
+                    atr_ratio,
+                    confluence_kind,
+                    agreed,
+                    classes,
                     json.dumps(extra or {}, sort_keys=True),
                 ),
             )
     except sqlite3.Error:
         return False
     return True
+
+
+def log_spread_history(
+    db_path: Path,
+    *,
+    pair: str,
+    bid: float,
+    ask: float,
+    timestamp: datetime | None = None,
+) -> bool:
+    if not has_spread_history_table(db_path):
+        return False
+
+    observed_at = timestamp or datetime.now(UTC)
+    spread = ask - bid
+    try:
+        with connect(db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO spread_history (
+                    timestamp, pair, bid, ask, spread
+                ) VALUES (?, ?, ?, ?, ?)
+                """,
+                (observed_at.isoformat(), pair, bid, ask, spread),
+            )
+    except sqlite3.Error:
+        return False
+    return True
+
+
+def query_spreads(db_path: Path, *, pair: str, since: datetime) -> list[float]:
+    if not has_spread_history_table(db_path):
+        return []
+
+    try:
+        with connect(db_path) as conn:
+            rows = conn.execute(
+                """
+                SELECT spread FROM spread_history
+                WHERE pair = ? AND timestamp >= ?
+                ORDER BY timestamp ASC
+                """,
+                (pair, since.isoformat()),
+            ).fetchall()
+    except sqlite3.Error:
+        return []
+    return [float(row[0]) for row in rows]
