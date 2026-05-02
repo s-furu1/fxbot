@@ -199,6 +199,19 @@ def init_db(db_path: Path) -> None:
         conn.executescript(SCHEMA_SQL)
 
 
+def has_signals_table(db_path: Path) -> bool:
+    if not db_path.exists():
+        return False
+    try:
+        with connect(db_path) as conn:
+            row = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='signals'"
+            ).fetchone()
+    except sqlite3.Error:
+        return False
+    return row is not None
+
+
 def has_entry_rejections_table(db_path: Path) -> bool:
     if not db_path.exists():
         return False
@@ -223,6 +236,48 @@ def has_spread_history_table(db_path: Path) -> bool:
     except sqlite3.Error:
         return False
     return row is not None
+
+
+def log_signal(
+    db_path: Path,
+    *,
+    timestamp: datetime,
+    pair: str,
+    source: str,
+    structure_class: str,
+    direction: str,
+    price: float,
+    atr: float,
+    atr_ratio: float,
+    spread: float,
+) -> bool:
+    if not has_signals_table(db_path):
+        return False
+
+    try:
+        with connect(db_path) as conn:
+            conn.execute(
+                """
+                INSERT INTO signals (
+                    timestamp, pair, source, structure_class, direction,
+                    price, atr, atr_ratio, spread
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    timestamp.isoformat(),
+                    pair,
+                    source,
+                    structure_class,
+                    direction,
+                    price,
+                    atr,
+                    atr_ratio,
+                    spread,
+                ),
+            )
+    except sqlite3.Error:
+        return False
+    return True
 
 
 def log_entry_rejection(

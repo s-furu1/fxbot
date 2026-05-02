@@ -26,6 +26,8 @@ ENTRY_REJECTION_REASONS = frozenset(
         "spread_too_high",
         "currency_exposure",
         "exposure_api_failed",
+        "intraclass_only",
+        "conflicting_signals",
     }
 )
 

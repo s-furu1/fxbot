@@ -1,4 +1,4 @@
-# ログスキーマ仕様（凍結版 v1.1）
+# ログスキーマ仕様（凍結版 v1.2）
 
 本ドキュメントは fxbot の SQLite データベース（`/data/trades.db`）における全テーブルのスキーマを確定するもの。
 **実装はこの仕様に厳密に従うこと**。本仕様の変更は破壊的変更として扱い、マイグレーション手順を別途定義する。
@@ -9,6 +9,7 @@
 |----------|---------|
 | v1.0 | 初版凍結（signals / opens / closes / latency / position_tracking / baseline_* / currency_exposure_snapshots / spread_history） |
 | v1.1 | `entry_rejections` テーブルを正式追加（フィルタ拒否理由の分析） |
+| v1.2 | `entry_rejections.reason` に `conflicting_signals` を追加 |
 
 ---
 
@@ -338,7 +339,7 @@ sell: mae = max(mid in tracking) - entry_price
 
 ### 4. `entry_rejections` の拒否理由コード（v1.1）
 
-`reason` カラムには以下の固定文字列を使用する。新しい拒否理由を追加する場合は仕様変更（v1.2）として扱う。
+`reason` カラムには以下の固定文字列を使用する。新しい拒否理由を追加する場合は仕様変更として扱う。
 
 | reason | 発生条件 | 対応箇所 |
 |--------|--------|--------|
@@ -354,6 +355,7 @@ sell: mae = max(mid in tracking) - entry_price
 | `exposure_api_failed` | エクスポージャー取得APIが失敗し、安全側で拒否 | filters.md §2.6 |
 | `env_mismatch` | 起動時・定期・エントリー直前の環境整合性チェック失敗 | startup_checks.py |
 | `kill_switch` | 安全装置発動 | 将来用 |
+| `conflicting_signals` | buy/sell 双方でcross-class confluenceが同時成立し、方向を一意に決定できない | confluence派生 |
 
 実装上の注意：
 - `no_confluence` は頻発するため、デフォルトでは記録しない（`signals`テーブルから事後集計可能）
