@@ -42,9 +42,11 @@
 - `logger.py`
 - `confluence.py` の抽象ロジック
 - `strategies/base.py`
-- ダミー戦略 / サンプル戦略
+- ダミー戦略 / サンプル戦略 / toy strategy
 - テストコード
 - `.env.example`
+- `configs/*.example.yaml`
+- `configs/*.example.yml`
 
 ## 公開しないもの
 
@@ -67,6 +69,11 @@
 - 実測で優位性が出たATR帯
 - 本番で使っている正確なパラメータ
 - 完成版の戦略ロジック
+- liveで使用するstrategy implementation
+- 実測で優位性が確認されたstrategy pair
+- 実測で優位性が確認されたtimeband / pair / ATR条件
+- strategy selection / allocationの採用ルール
+- live用strategy registry
 - バックテスト結果の詳細
 - live運用設定
 
@@ -76,6 +83,7 @@
 
 - `filters.md` の閾値
 - `strategies/` 配下の個別戦略
+- `configs/` 配下の設定ファイル
 - `reports/`
 - `notebooks/`
 - `backtests/`
@@ -84,6 +92,65 @@
 - `live-results/`
 
 実測で優位性が確認された後は、具体的な条件を含む情報を公開しない。
+
+## Strategy implementation policy
+
+公開リポジトリには、戦略の抽象基底クラス・Signal型・confluence判定・ログ基盤・評価基盤のみを含める。
+
+実測で優位性が確認された、またはlive運用に使う個別戦略実装は、公開リポジトリに置かない。
+
+本命戦略は以下のいずれかで管理する。
+
+```text
+- private repository: fxbot-private
+- local-only directory: ~/projects/fxbot-private
+- homeserver-only runtime mount
+```
+
+公開リポジトリに置いてよい戦略は、以下に限定する。
+
+```text
+- sample strategy
+- dummy strategy
+- toy strategy
+- docs用の簡略化されたstrategy
+```
+
+公開リポジトリに置かないものは以下。
+
+```text
+- liveで使用するstrategy implementation
+- 実測で優位性が確認されたstrategy pair
+- 実測で優位性が確認されたtimeband / pair / ATR条件
+- strategy selection / allocationの採用ルール
+- live用strategy registry
+- 実測レポート
+- 実測ログ
+```
+
+## Strategy configuration policy
+
+戦略有効化リスト、対象ペア、対象時間帯、実パラメータ、selection / allocation rule は利益源泉になり得るため、原則として公開しない。
+
+公開する場合は、実運用と無関係な example のみに限定する。
+
+公開してよい例：
+
+```text
+configs/strategy_registry.example.yaml
+configs/allocation_rules.example.yaml
+```
+
+公開しない例：
+
+```text
+configs/strategy_registry.live.yaml
+configs/strategy_registry.private.yaml
+configs/allocation_rules.live.yaml
+configs/allocation_rules.private.yaml
+configs/live/
+configs/private/
+```
 
 ## パブリックリポジトリで見せる範囲
 
@@ -169,6 +236,33 @@ backtests/
 live-results/
 practice-results/
 
+# private strategy implementations
+src/fxbot/strategies/private/
+src/fxbot/strategies/*_private.py
+src/fxbot/strategies/*_live.py
+src/fxbot/strategies/*_edge.py
+
+# private / live strategy configuration
+configs/private/
+configs/live/
+configs/*private*.yaml
+configs/*private*.yml
+configs/*live*.yaml
+configs/*live*.yml
+configs/*edge*.yaml
+configs/*edge*.yml
+!configs/*.example.yaml
+!configs/*.example.yml
+
+# strategy selection / allocation outputs
+strategy-selection/
+allocation-reports/
+selection-reports/
+
+# experiment outputs / local research notes
+experiments/
+research-notes/
+
 # logs
 *.log
 ```
@@ -182,3 +276,5 @@ Phase 8 practice operation も public のままでよいが、実測ログ・実
 Phase 9 live migration 以降は、戦略ロジック・実パラメータ・実測レポートの公開範囲を再判断する。
 
 本当に実測で優位性が出始めた場合は、戦略ロジックだけ private 化する。
+
+長期的には、public repository は framework / sample strategy / tests / safety infrastructure を示す場所として維持し、本命strategy implementation、live strategy registry、allocation rule、実測レポートは private repository または local-only 管理へ分離する。
