@@ -28,6 +28,33 @@ backtests/
 live-results/
 practice-results/
 
+# private strategy implementations
+src/fxbot/strategies/private/
+src/fxbot/strategies/*_private.py
+src/fxbot/strategies/*_live.py
+src/fxbot/strategies/*_edge.py
+
+# private / live strategy configuration
+configs/private/
+configs/live/
+configs/*private*.yaml
+configs/*private*.yml
+configs/*live*.yaml
+configs/*live*.yml
+configs/*edge*.yaml
+configs/*edge*.yml
+!configs/*.example.yaml
+!configs/*.example.yml
+
+# strategy selection / allocation outputs
+strategy-selection/
+allocation-reports/
+selection-reports/
+
+# experiment outputs / local research notes
+experiments/
+research-notes/
+
 # logs
 *.log
 
